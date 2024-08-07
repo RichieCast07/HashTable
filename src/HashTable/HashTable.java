@@ -1,129 +1,67 @@
-import src.HashTable.HashTable;
+package src.HashTable;
+
 import src.Business.Business;
+import java.util.LinkedList;
+import java.util.ArrayList;
+import java.util.List;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.Scanner;
+public class HashTable {
+    private final int size;
+    private final LinkedList<Business>[] tableWithLinkedLists;
+    private final List<Business>[] tableWithArrayLists;
 
-public class Main {
-    private static HashTable hashTable;
-
-    public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
-        hashTable = new HashTable(200000);
-        boolean exit = false;
-
-        while (!exit) {
-            System.out.println("Opciones:");
-            System.out.println("1. Cargar datos (Multiplicacion, Adyacencia)");
-            System.out.println("2. Cargar datos (Division, Adyacencia)");
-            System.out.println("3. Buscar ID (Multiplicacion, Adyacencia)");
-            System.out.println("4. Buscar ID (Division, Adyacencia)");
-            System.out.println("5. Cargar datos (Multiplicacion, Java List)");
-            System.out.println("6. Cargar datos (Division, Java List)");
-            System.out.println("7. Buscar ID (Multiplicacion, Java List)");
-            System.out.println("8. Buscar ID (Division, Java List)");
-            System.out.println("9. Imprimir colisiones (LinkedList)");
-            System.out.println("10. Imprimir colisiones (ArrayList)");
-            System.out.println("11. Salir");
-
-            int choice = scanner.nextInt();
-            scanner.nextLine();
-
-            switch (choice) {
-                case 1:
-                    loadData(true, true);
-                    break;
-                case 2:
-                    loadData(false, true);
-                    break;
-                case 3:
-                    searchData(true, true, scanner);
-                    break;
-                case 4:
-                    searchData(false, true, scanner);
-                    break;
-                case 5:
-                    loadData(true, false);
-                    break;
-                case 6:
-                    loadData(false, false);
-                    break;
-                case 7:
-                    searchData(true, false, scanner);
-                    break;
-                case 8:
-                    searchData(false, false, scanner);
-                    break;
-                case 9:
-                    hashTable.printCollisions(true);
-                    break;
-                case 10:
-                    hashTable.printCollisions(false);
-                    break;
-                case 11:
-                    exit = true;
-                    break;
-                default:
-                    System.out.println();
-                    System.out.println("Opción no válida.");
-                    System.out.println();
-                    break;
-            }
-        }
-        scanner.close();
-    }
-
-    private static void loadData(boolean useMultiplication, boolean useLinkedList) {
-        String line;
-        String splitBy = ",";
-        long startTime, endTime;
-
-        try (BufferedReader br = new BufferedReader(new FileReader("./src/data/bussines.csv"))) {
-            startTime = System.nanoTime();
-            while ((line = br.readLine()) != null) {
-                String[] data = line.split(splitBy);
-                Business business = new Business(data[0], data[1], data[2], data[3], data[4]);
-                hashTable.insert(business, useMultiplication, useLinkedList);
-            }
-            endTime = System.nanoTime();
-            System.out.println("--------------------------------------------");
-            System.out.println("Datos cargados en " + (endTime - startTime) + " ns");
-            System.out.println("--------------------------------------------");
-        } catch (IOException e) {
-            e.printStackTrace();
+    @SuppressWarnings("unchecked")
+    public HashTable(int size) {
+        this.size = size;
+        tableWithLinkedLists = new LinkedList[size];
+        tableWithArrayLists = new ArrayList[size];
+        for (int i = 0; i < size; i++) {
+            tableWithLinkedLists[i] = new LinkedList<>();
+            tableWithArrayLists[i] = new ArrayList<>();
         }
     }
 
-    private static void searchData(boolean useMultiplication, boolean useLinkedList, Scanner scanner) {
-        System.out.println();
-        System.out.println("-----------------------");
-        System.out.println("Ingrese el ID a buscar:");
-        System.out.println("-----------------------");
-        System.out.println();
-        String searchId = scanner.nextLine();
+    private int hashFunctionMultiplication(String key) {
+        int hashCode = key.hashCode();
+        double A = (Math.sqrt(5) - 1) / 2;
+        return (int) (Math.abs(hashCode * A) % 1 * size);
+    }
 
-        long startTime = System.nanoTime();
-        Business foundBusiness = hashTable.search(searchId, useMultiplication, useLinkedList);
-        long endTime = System.nanoTime();
-        System.out.println();
-        System.out.println("-------------------------------");
-        System.out.println("Tiempo de búsqueda: " + (endTime - startTime) + " ns");
-        System.out.println("-------------------------------");
-        System.out.println();
-        if (foundBusiness != null) {
-            System.out.println();
-            System.out.println("-----------------------------------");
-            System.out.println("Datos encontrados:\n" + foundBusiness);
-            System.out.println("-----------------------------------");
-            System.out.println();
+    private int hashFunctionDivision(String key) {
+        int hashCode = key.hashCode();
+        return Math.abs(hashCode) % size;
+    }
+
+    public void insert(Business business, boolean useMultiplication, boolean useLinkedList) {
+        String key = business.getId();
+        int hashIndex = useMultiplication ? hashFunctionMultiplication(key) : hashFunctionDivision(key);
+        if (useLinkedList) {
+            tableWithLinkedLists[hashIndex].add(business);
         } else {
-            System.out.println();
-            System.out.println("---------------------");
-            System.out.println("Datos no encontrados.");
-            System.out.println("---------------------");
-            System.out.println();
+            tableWithArrayLists[hashIndex].add(business);
+        }
+    }
+
+    public Business search(String id, boolean useMultiplication, boolean useLinkedList) {
+        int hashIndex = useMultiplication ? hashFunctionMultiplication(id) : hashFunctionDivision(id);
+        List<Business> list = useLinkedList ? tableWithLinkedLists[hashIndex] : tableWithArrayLists[hashIndex];
+        for (Business business : list) {
+            if (business.getId().equals(id)) {
+                return business;
+            }
+        }
+        return null;
+    }
+
+    public void printCollisions(boolean useLinkedList) {
+        for (int i = 0; i < 100; i++) {
+            List<Business> businesses = useLinkedList ? tableWithLinkedLists[i] : tableWithArrayLists[i];
+            if (businesses.size() > 1) {
+                System.out.println("Indice: " + i + " tiene " + (businesses.size() - 1) + " colisiones.");
+                for (Business business : businesses) {
+                    System.out.println("    - " + business);
+                }
+            }
         }
     }
 }
