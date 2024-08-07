@@ -17,26 +17,19 @@ public class Main {
         while (!exit) {
             System.out.println("Opciones:");
             System.out.println("1. Cargar datos (Multiplicacion, Adyacencia)");
-            System.out.println("--------------------------------------------");
             System.out.println("2. Cargar datos (Division, Adyacencia)");
-            System.out.println("--------------------------------------------");
             System.out.println("3. Buscar ID (Multiplicacion, Adyacencia)");
-            System.out.println("--------------------------------------------");
             System.out.println("4. Buscar ID (Division, Adyacencia)");
-            System.out.println("--------------------------------------------");
             System.out.println("5. Cargar datos (Multiplicacion, Java List)");
-            System.out.println("--------------------------------------------");
             System.out.println("6. Cargar datos (Division, Java List)");
-            System.out.println("--------------------------------------------");
             System.out.println("7. Buscar ID (Multiplicacion, Java List)");
-            System.out.println("--------------------------------------------");
             System.out.println("8. Buscar ID (Division, Java List)");
-            System.out.println("--------------------------------------------");
-            System.out.println("9. Salir");
-            System.out.println("--------------------------------------------");
+            System.out.println("9. Imprimir colisiones (LinkedList)");
+            System.out.println("10. Imprimir colisiones (ArrayList)");
+            System.out.println("11. Salir");
 
             int choice = scanner.nextInt();
-            scanner.nextLine(); // Consumir nueva línea
+            scanner.nextLine();
 
             switch (choice) {
                 case 1:
@@ -64,11 +57,17 @@ public class Main {
                     searchData(false, false, scanner);
                     break;
                 case 9:
+                    hashTable.printCollisions(true);
+                    break;
+                case 10:
+                    hashTable.printCollisions(false);
+                    break;
+                case 11:
                     exit = true;
                     break;
                 default:
                     System.out.println();
-                    System.out.println("Opcion no valida.");
+                    System.out.println("Opción no válida.");
                     System.out.println();
                     break;
             }
@@ -110,7 +109,7 @@ public class Main {
         long endTime = System.nanoTime();
         System.out.println();
         System.out.println("-------------------------------");
-        System.out.println("Tiempo de busqueda: " + (endTime - startTime) + " ns");
+        System.out.println("Tiempo de búsqueda: " + (endTime - startTime) + " ns");
         System.out.println("-------------------------------");
         System.out.println();
         if (foundBusiness != null) {
